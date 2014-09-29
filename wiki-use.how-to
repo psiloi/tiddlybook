@@ -1,0 +1,48 @@
+This is the how-to for TiddlyBook. The aim of this file is to explain how to use TiddlyWiki to get awiki that car b processed by TiddlyBook.
+
+As of 27/09/2014 only TiddlyWiki classic is supported. The new TiddlyWiki v5.1.0 and later will be supported in the future.
+
+The wiki file must be UTF-8 encoded.
+
+=== Linearization
+
+A wiki is great to produce a document with multiple links from parts to parts but it is not meant to produce linear contents. To achieve this goal, TiddlyBook uses an explicit linearization, which is stored in every tiddler which has some other tiddlers as sub-content in the form of a last part introduced by a level two title named 'sequential reading' (the case is important: all lower case) like that:
+
+!! sequential reading
+
+It is followed by a flat list of raw links to tiddlers to be incuded (no label for a link!), that we call siblings in this document. The most logical is to use an ordered list but an unordered list is also OK. A sample is provided below:
+
+!! sequential reading
+# [[firtst tiddler]]
+# anOtherOne
+# [[finally]]
+
+=== Tags
+
+Each tiddler can have tags. In fact, everyone of them must have had some. There are two kinds of tags:
+* tags describing a kind of contents, beginning by a colon;
+* tag corresponding to the title of an other tiddler, which act as a mediawiki category.
+
+===== contents tags
+The tags begin by a colon. They are named after docbook kind of contents that are supported. Each tiddler must have one and only one of these, but you may omit it and then it will be silently treated as if tagged with :section.
+
+
+The root tiddler must be tagged with :part. This is the only tiddler that may be tagged with :part.
+
+The tiddlers that are direct siblings of the ancestor tiddler must be tagged :chapter. Only them may be tagged :chapter.
+
+Siblings of :chapter tiddler can be tagged :section. Siblings of sections can also have :section siblings. :sctions tags appear in the Table of Contents (TOC). If you want a contents which is not in the TOC you may tag it with either :note, :tip, :caution, :important, :warning or :appendice if they have the kind of intents that their names convey.
+
+The last tag of this family is :simplesect. These do not appear in the TOC but they cannot coexist with :sections in the siblings of single tiddler. This mean that if your tiddler has a single :simplesect than you can only have :simplesect siblings for this tiddler.
+
+You should put the content tag last in the list of tags.
+
+==== category tags
+The number of category tags is free. It is best to have the first one as that of the tiddler that link the present tiddler in its 'sequential reading' list. It is mandatory to tag this parent tiddler un every tiddler but the root tiddler. This means that it is an error to include a tiddler in a 'sequential reading' list if this one is not tagging the current tiddler.
+
+=== recommended setup
+Say that the tiddlybook project is in the workspace/tiddlybook directory. You will then have your project in workspace/tiddlybook. Create directories 'src', 'documents' and 'schemas' in your project directory. Use symbolic links in your src subdirectory to the following files: 'docbook2epub.sh', 'generate-schemas-makefile.pl', 'get-tiddlers.pl' and 'wiki2docbook.rb' which are in workspace/tiddlybook/src. Copy the sample 'Mkefile' and adapt it. Now you can type 'make' to create all the derivatives from your tiddlywiki files. If you only want to test your tiddlywiki, just type 'make project.xml' (if you don't change this name of course).
+
+=== docbook bug hunting
+The software will tell you many errors. It wil not be able to fetch all errors though. This is why jing is used to validate the generated docbook. Jing will especially spot errors due to limitations of the support of the wiki syntax by the software. Especilly, it is not supported to have a quote insido a bold sequence "this is ''John's lunchbox''." is not supported and will have jing complains. Similarly, you can't have a slash in an italics sequence ("that is //great/awful// job" is not supported). In any case, when jing complains, look at the docbook xml at the line of complaint to see what is causing havoc and fix it.
+
