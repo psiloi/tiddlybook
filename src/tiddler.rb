@@ -134,7 +134,10 @@ class WikiTable
       case line
       when /^[|]\+/ then line.sub(/^[|]\+(.*+)$/) { |line| @title = $1 }
       when /^!/ then
-	line.sub(/^!([^|]+[|])?([^|]*)$/) { |line| row << WikiCell.new($1, $2); header = true }
+	line.sub(/^!([^|]+[|])?([^|]*)$/) do |line|
+	  row << WikiCell.new($1, $2)
+	  header = true
+	end
       when /^[|][-}]$/ then
 	if row.size != 0
 	  if header
@@ -145,7 +148,10 @@ class WikiTable
 	  row = []
 	end
       when /^[|]/ then
-	line.sub(/^[|]([^|]+[|])?([^|]*)$/) { |line| row << WikiCell.new($1, $2); header = false }
+	line.sub(/^[|]([^|]+[|])?([^|]*)$/) do |line|
+	  row << WikiCell.new($1, $2)
+	  header = false
+	end
       when /^\{[|]/ then row = []
       else
 	puts "mediawiki error in table with line #{line}"
