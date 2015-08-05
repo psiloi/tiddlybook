@@ -259,7 +259,20 @@ class Tiddler
   end
 
   def tiddlywiki_to_mediawiki(inside)
-    #puts "==== tiddliwiki ===\n#{inside}\n-------"
+    #puts "=== tiddliwiki ===\n#{inside}\n-------(tiddlywiki_to_mediawiki)---"
+    # the first regex in trans = could take very very long time (seeming like
+    # if an infinite time) if there is only an odd number of couples of quotes
+    # in the string.
+    # So we fix it by adding a couple of quotes at the end if need be.
+    kludge = inside.split("''", -1)
+    if kludge.count & 1 == 0
+      # special case with a couple of quotes at the end of the string
+      if kludge[kludge.count - 1].length == 0
+	inside = inside[0, inside.length - 2] # remove these last two quotes
+      else
+	inside << "''"
+      end
+    end
     trans = inside .
       gsub(/''((?:[^']+'?)*)''/, "'''\\1'''") .
       #gsub(/\/\/((?:[^\/]+\/?)*)\/\//, "''\\1''") . # bug: infinite loop with //dummy// for instance
@@ -271,6 +284,7 @@ class Tiddler
       gsub(/^!! *(.*)$/, '== \1 ==') .
       gsub(/^! *(.*)$/, '= \1 =') .
       gsub(/\&lt;\/?nowiki\&gt;/, '') # nowiki is of use because of -- (which is not mediawiki code)
+    #puts "before translate_img **************\n#{trans}\n-------"
     trans = translate_img(trans)
     #puts "=== step 1 ===\n#{trans}\n=======" ;
     trans = trans .
@@ -280,17 +294,19 @@ class Tiddler
     gsub(/([~]?)([A-Z][0-9_-]*[A-Z]+[A-Z0-9_-]*[a-z][A-Za-z0-9_-]*)/) {
       |camel| ($1 == '~') ? $2 : "[[#{$2}]]"
     } .
-    #''; puts "=== step 2 ===\n#{trans}\n=======" ; trans = trans .
+    + ''; puts "=== step 2 ===\n#{trans}\n=======" ; trans = trans .
     # corrects [[[[HCh]]|Heavy Chariot]] for instance
     gsub(/\[\[(\[\[[A-Z][^\]]*)\]\]/, '\1') .
     # corrects [[PIG|[[PIGs]]]] for instance
     gsub(/\[\[([^\]|]+)\|\[\[([A-Z][^\]]*)\]{4}/, '[[\1|\2]]') .
-    #''; puts "=== step 3 ===\n#{trans}\n=======" ; trans = trans .
+    + ''; puts "=== step 3 ===\n#{trans}\n=======" ; trans = trans .
     gsub(/\[\[(\[\[ZoC)\]\]/, '\1') .
     gsub(/\[(https?:[^\[]+)\[\[([^\]]+)\]\]([^\]]*)\]/, '[\1\2\3]') .
     gsub(/(\[https?:)''/, '\1//')
-    #puts "before translate_table **************\n#{trans}\n-------"
-    translate_tables(trans)
+    puts "****** before translate_table ********\n#{trans}\n-------"
+    trans = translate_tables(trans)
+    #puts 'translated!'
+    trans
   end
 
   def translate_img(trans)
