@@ -550,10 +550,13 @@ class Tiddler
 
       #puts "after regex \"#{@title}\" trans=#{trans}\n-------------\n\n"
       trans = operate_headers(trans)
+      #puts "after operate_headers \"#{@title}\" trans=#{trans}\n-------------\n\n"
       trans = operate_definitions(trans)
-      trans = operate_lists(trans)
+      #puts "after operate_definitions \"#{@title}\" trans=#{trans}\n-------------\n\n"
       trans = operate_tables(trans)
-      #puts "after operate \"#{@title}\" trans=#{trans}\n-------------\n\n"
+      #puts "after operate_tables \"#{@title}\" trans=#{trans}\n-------------\n\n"
+      trans = operate_lists(trans)
+      #puts "after operate_lists \"#{@title}\" trans=#{trans}\n-------------\n\n"
       #puts "DOCBOOK tiddler \"#{@title}\" as #{@kind}"
       # <part> forbids direct inclusion of text. So we have to put everything
       # but <title> and 'sequential reading' into <partinfo>.
