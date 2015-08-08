@@ -103,21 +103,28 @@ if bad_tag.size > 0 || nonexistent_tags.size > 0 || not_tagged.size > 0
   print "Tagging Error\n"
   exit 1
 end
-not_included, repeated, unknown, missing_tag, self_tag, head = Tiddler.analyze_sequential_reading(tiddlers)
+not_included, repeated, linking_imm, unknown, missing_tag,
+  self_tag, head = Tiddler.analyze_sequential_reading(tiddlers)
 if (head == nil)
   print "Error: no initial tiddler\n"
   exit 1
 end
-if not_included.size != 0 || repeated.size != 0 || unknown.size != 0 || missing_tag.size != 0 || self_tag.size != 0
+tagging_imm = [] # a calculer via htiddlers mais pas encore fait
+if (not_included.size != 0 || repeated.size != 0 || linking_imm.size != 0 ||
+  tagging_imm.size != 0 || unknown.size != 0 || missing_tag.size != 0 ||
+  self_tag.size != 0)
   #print "----------\n"
   not_included.each { |title| print "Not Included Error: \"#{title}\".\n" }
   repeated.each { |msg| print msg }
+  linking_imm.each { |msg| print msg }
+  tagging_imm.each { |msg| print msg }
   unknown.each { |msg| print msg }
   missing_tag.each { |title| print "Missing Parent Tag Error: \"#{title}\".\n" }
   self_tag.each { |title| print "Tagging Itself Error: \"#{title}\".\n" }
   print "Sequential Reading Error\n"
   exit 1
 end
+tiddlers.values.each { |tiddler| tiddler.translate_to_docbook(tiddlers) }
 option = ARGV[0]
 case option
 when "-d"

@@ -1,4 +1,5 @@
-# transcript mediawiki into docbook
+# transcript tiddlywiki into mediawiki then into docbook
+#
 # coyright 2013-2014 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
 
 # This file is part of TiddlyBook.
@@ -224,11 +225,7 @@ class Tiddler
     @tags = tab_tags
     setup_kind
     @contents = tiddlywiki_to_mediawiki(text)
-    inside = @contents[/^.*(?=\n+== sequential reading ==\n)/m]
-    inside = @contents if inside.nil?
-    #puts "inside=«#{inside}»"
-    @docbook_begin, @docbook_end = mediawiki_to_docbook(inside)
-    #puts "docbook is clean «#{@docbook_begin}#{@docbook_end}»"
+    #puts "#{@title} tiddliwiki translated to mediawiki ===#{@contents}==="
     @siblings = []
   end
 
@@ -246,37 +243,64 @@ class Tiddler
 	when ':chapter' then @kind = 'chapter'
 	when ':section' then @kind = 'section'
 	when ':simplesect' then @kind = 'simplesect'
+	when ':appendix' then @kind = 'appendix'
 	when ':note' then @kind = 'note'
+	when ':footnote' then @kind = 'footnote'
 	when ':tip' then @kind = 'tip'
 	when ':caution' then @kind = 'caution'
 	when ':important' then @kind = 'important'
 	when ':warning' then @kind = 'warning'
-	when ':appendix' then @kind = 'appendix'
 	end
       end
     end
     @kind = 'section' if first == ''
   end
 
-  def tiddlywiki_to_mediawiki(inside)
-    #puts "=== tiddliwiki ===\n#{inside}\n-------(tiddlywiki_to_mediawiki)---"
+  def immediate?
+    immediate = false
+    case @kind
+    when 'note' then immediate = true
+    when 'footnote' then immediate = true
+    when 'tip' then immediate = true
+    when 'caution' then immediate = true
+    when 'important' then immediate = true
+    when 'warning' then immediate = true
+    end
+    immediate
+  end
+
+  def fix_couple_quotes(inside)
     # the first regex in trans = could take very very long time (seeming like
     # if an infinite time) if there is only an odd number of couples of quotes
     # in the string.
-    # So we fix it by adding a couple of quotes at the end if need be.
+    # So we fix it by adding a couple of quotes at the best place we can guess.
     kludge = inside.split("''", -1)
     if kludge.count & 1 == 0
-      # special case with a couple of quotes at the end of the string
+      puts "Error: lacking a couple of quotes in tiddler \"#{@title}\"."
+      #puts "current inside=#{inside}====="
       if kludge[kludge.count - 1].length == 0
+         # special case with a couple of quotes at the end of the string
 	inside = inside[0, inside.length - 2] # remove these last two quotes
       else
-	inside << "''"
+	# general case. The fix should work good enough most of the time.
+	inside.sub!(/(''(?![^']+'').*)/m) do |last_couple|
+	  # we have all the text from the last couple of quotes on
+	  text = $1
+	  # put 2 quotes at the first end of line after it or at the end of text
+	  text.sub!(/($)/m, '\'\'\1')
+	end
       end
     end
+    inside
+  end
+
+  def tiddlywiki_to_mediawiki(inside)
+    #puts "=== raw ===\n#{inside}\n======="
+    inside = fix_couple_quotes(inside)
+    #puts "=== step 0 ===\n#{inside}\n======="
     trans = inside .
       gsub(/''((?:[^']+'?)*)''/, "'''\\1'''") .
-      #gsub(/\/\/((?:[^\/]+\/?)*)\/\//, "''\\1''") . # bug: infinite loop with //dummy// for instance
-      gsub(/\/\/([^\/]*)\/\//, "''\\1''") .          # doesn't allow / within italics
+      gsub(/\/\/([^\/]*)\/\//, "''\\1''") . # doesn't allow / within italics
       gsub(/\[\[([^|\]]+)\|([^\]]+)\]\]/, '[[\2|\1]]') .
       gsub(/\[\[(https?:[^|\]]+)\|([^\]]+)\]\]/, '[\1 \2]') .
       gsub(/^!!!! *(.*)$/, '==== \1 ====') .
@@ -284,29 +308,40 @@ class Tiddler
       gsub(/^!! *(.*)$/, '== \1 ==') .
       gsub(/^! *(.*)$/, '= \1 =') .
       gsub(/\&lt;\/?nowiki\&gt;/, '') # nowiki is of use because of -- (which is not mediawiki code)
-    #puts "before translate_img **************\n#{trans}\n-------"
+    #puts "before translate_img #{@title} **************\n#{trans}\n-------"
     trans = translate_img(trans)
-    #puts "=== step 1 ===\n#{trans}\n=======" ;
+    #puts "=== step 1 #{@title} ===\n#{trans}\n======="
+    # fixing camelcase automatic links. but anywhere: further correcting needed
     trans = trans .
       gsub(/([~]?)([A-Z][0-9_-]*[a-z][a-z0-9_-]*[A-Z][A-Za-z0-9_-]*)/) {
       |camel| ($1 == '~') ? $2 : "[[#{$2}]]"
     } .
-    gsub(/([~]?)([A-Z][0-9_-]*[A-Z]+[A-Z0-9_-]*[a-z][A-Za-z0-9_-]*)/) {
+    gsub(/([~]?)([A-Z][0-9_g-]*[A-Z]+[A-Z0-9_-]*[a-z][A-Za-z0-9_-]*)/) {
       |camel| ($1 == '~') ? $2 : "[[#{$2}]]"
     } .
-    + ''; puts "=== step 2 ===\n#{trans}\n=======" ; trans = trans .
+    #+ ''; puts "=== step 2 #{@title} ===\n#{trans}\n=======" ; trans = trans .
     # corrects [[[[HCh]]|Heavy Chariot]] for instance
     gsub(/\[\[(\[\[[A-Z][^\]]*)\]\]/, '\1') .
     # corrects [[PIG|[[PIGs]]]] for instance
     gsub(/\[\[([^\]|]+)\|\[\[([A-Z][^\]]*)\]{4}/, '[[\1|\2]]') .
-    + ''; puts "=== step 3 ===\n#{trans}\n=======" ; trans = trans .
-    gsub(/\[\[(\[\[ZoC)\]\]/, '\1') .
-    gsub(/\[(https?:[^\[]+)\[\[([^\]]+)\]\]([^\]]*)\]/, '[\1\2\3]') .
-    gsub(/(\[https?:)''/, '\1//')
-    puts "****** before translate_table ********\n#{trans}\n-------"
-    trans = translate_tables(trans)
-    #puts 'translated!'
-    trans
+    #+ ''; puts "=== step 3 #{@title} ===\n#{trans}\n=======" ; trans = trans .
+    gsub(/\[\[(\[\[ZoC)\]\]/, '\1')
+    #puts "=== step 4 #{@title} ===\n#{trans}\n======="
+    # fix [http://www.fubar.com [[ForSale]] here] into [http://www.fubar.com ForSale here]
+    # fixing repeated while it's acting because several camelcase words may lurk
+    fixing = true
+    while (fixing) do
+      fixing = false
+      trans.gsub!(/\[([a-z]{3,8}:[^]\[]+)\[{2}([^\]]+)\]{2}([^\]]*)\]/) do |str|
+	fixing = true
+	'[' << $1 << $2 << $3 << ']'
+      end
+    end
+    #gsub(/\[([a-z]{3,8}:[^\[\]]+)\[{2}([^\]]+)\]{2}([^\]]*)\]/, '[\1\2\3]') .
+    #puts "=== step 5 #{@title} ===\n#{trans}\n======="# ; trans = trans .
+    trans.gsub!(/(\[[a-z]{3,8}:)''/, '\1//')
+    #puts "=== step 6 #{@title} ===\n#{trans}\n======="
+    translate_tables(trans)
   end
 
   def translate_img(trans)
@@ -334,6 +369,7 @@ class Tiddler
     newtrad
   end
 
+  # translate tiddlywiki tables into objects for later tranlation into mediawiki
   def translate_tables(text)
     return text unless text.match(/^|/m)
     #puts "translate_tables of\n-----------\n#{text}\n------------"
@@ -432,13 +468,57 @@ class Tiddler
       nbh -= 1
       row.each { |cell| trans += cell.to_mediawiki(beg) }
     end
-    trans += "|}\n"
+    trans << "|}\n"
     #puts "=== begin TABLE ===\n#{trans}=== end TABLE ==="
     trans
   end
 
-  def mediawiki_to_docbook(inside)
-    #print "mediawiki_to_docbook ====\n#{inside}\n\n"
+  # translate conmtents to docbook
+  #
+  # @param tiddlers Hash
+  #	 hashtable of all the tiddlers
+  def translate_to_docbook(tiddlers)
+    @docbook_begin, @docbook_end = mediawiki_to_docbook(tiddlers)
+    #puts "TRANS #{@title} DOCBOOK #{@docbook_begin}=== END" 
+  end
+
+  # create a docbook link or insert immediate contents
+  #
+  # @param target string
+  #	  wiki name of the linked resource
+  # @param label string
+  #	  label of the link
+  # @param tiddlers hash
+  #	  all the tiddlers in the document
+  # @return string
+  #	  translation for docbook according to the nature of the linked tiddler
+  def wikilink_to_docbook(target, label, tiddlers)
+    #puts "now in wikilink_to_docbook(#{target}, #{label}) for #{@title}"
+    trans = ''
+    linked = tiddlers[target]
+    #puts "link to \"#{target}\" as label \"#{label}\" is " << linked.inspect
+    if !linked
+      trans = "error: unknown wikilink target \"#{target}\""
+      puts trans
+    elsif linked.immediate?
+      left, right = linked.mediawiki_to_docbook(tiddlers)
+      if (linked.kind == 'footnote')
+	trans = "#{left}#{right}"
+      else
+	trans = "</para>#{left}#{right}<para>"
+      end
+    else
+      target_id = target.gsub(/[^a-zA-Z0-9]+/, '_')
+      trans = "<link linkend=\"#{target_id}\">#{label}</link>"
+    end
+    #puts "wikilink_to_docbook in \"#{@title}\" of \"#{target}\" is :::#{trans}:::#{target}:::"
+    trans
+  end
+
+  def mediawiki_to_docbook(tiddlers)
+    inside = @contents[/^.*(?=\n+== sequential reading ==\n)/m]
+    inside = @contents if inside.nil?
+    #puts "mediawiki_to_docbook of #{@title}, inside ====\n#{inside}\n===="
     trans = inside .
       # (?: is non-capturing group within a regex. see http://www.regular-expressions.info/brackets.html
       # and http://www.regular-expressions.info/modifiers.html
@@ -450,7 +530,7 @@ class Tiddler
 	figfile = $1
 	figtitle = $2
 	figid = figfile.gsub(/\.svg$/, '').gsub(/[\/.]+/, '_')
-	#puts "vu #{figfile} :: #{figtitle} AS #{figid}"
+	#puts "seen #{figfile} :: #{figtitle} AS #{figid}"
 	figure = "<figure xml:id=\"#{figid}\">\n<title>#{figtitle}</title>\n" <<
 	"<mediaobject>\n<alt>#{figtitle}</alt>\n<imageobject>\n" <<
 	"<imagedata #{align}format=\"SVG\" fileref=\"#{figfile}\"/>\n" <<
@@ -458,27 +538,39 @@ class Tiddler
 	#puts "Image translated into #{figure}"
 	figure
       end .
-      gsub(/\[\[([^\]|]+)\]\]/) { |match| lib = $1; dest = lib.gsub(/[^a-zA-Z0-9]+/, '_'); "<link linkend=\"#{dest}\">#{lib}</link>" }  .
-      gsub(/\[\[([^|]+)\|([^\]]+)\]\]/) { |match| lib = $2; dest = $1.gsub(/[^a-zA-Z0-9]+/, '_'); "<link linkend=\"#{dest}\">#{lib}</link>" } .
-      gsub(/\[([^ ]+) ([^\]]+)\]/) { |match| lib = $2; dest = $1; "<link xlink:href=\"#{dest}\">#{lib}</link>" } .
+      gsub(/\[\[([^\]|]+)\]\]/) { |match| target = $1; wikilink_to_docbook(target, target, tiddlers) } .
+      gsub(/\[\[([^|]+)\|([^\]]+)\]\]/) { |match| target = $1; label = $2; wikilink_to_docbook(target, label, tiddlers) } .
+      gsub(/\[([^ ]+) ([^\]]+)\]/) do |match|
+	target = $1
+	label = $2
+	#puts "xlink \"#{label}\" TO \"#{target}\""
+	"<link xlink:href=\"#{target}\">#{label}</link>"
+      end .
       gsub(/\n\n+/m, "\n</para>\n<para>\n")
 
-      #puts "after regex trans=#{trans}\n-------------\n\n"
+      #puts "after regex \"#{@title}\" trans=#{trans}\n-------------\n\n"
       trans = operate_headers(trans)
       trans = operate_definitions(trans)
       trans = operate_lists(trans)
       trans = operate_tables(trans)
-      #puts "after operate trans=#{trans}\n-------------\n\n"
+      #puts "after operate \"#{@title}\" trans=#{trans}\n-------------\n\n"
       #puts "DOCBOOK tiddler \"#{@title}\" as #{@kind}"
       # <part> forbids direct inclusion of text. So we have to put everything
       # but <title> and 'sequential reading' into <partinfo>.
       idxml = @title.gsub(/[^a-zA-Z0-9]+/, '_')
-      left = "<#{@kind} xml:id=\"#{idxml}\">\n<title>#{@title}</title>\n"
-      left << "<partintro>\n" if @kind == 'part'
-      left << "<para>\n" << trans
-      left << "\n</para>" unless trans.match(/<\/section>\n*$/m)
-      left << "\n</partintro>\n" if @kind == 'part'
+      left = ''
+      if (immediate?)
+	left << "<#{@kind}>\n<para>\n" << trans << "</para>\n"
+      else
+	left << "<#{@kind} xml:id=\"#{idxml}\">\n"
+	left << "<title>#{@title}</title>\n"
+	left << "<partintro>\n" if @kind == 'part'
+	left << "<para>\n" << trans
+	left << "\n</para>" unless trans.match(/<\/section>\n*$/m)
+	left << "\n</partintro>\n" if @kind == 'part'
+      end
       right = "</#{@kind}>\n"
+      #puts "mediawiki_to_docbook of #{@title}, translated ====\n#{left}#{right}\n===="
       return left, right
   end
 
@@ -550,6 +642,7 @@ class Tiddler
     trans = '';
     inside.each_line { |line|
       line.chomp!
+      #puts (within_list?'L':'-') + (within_term?'T':'-') + " >>#{line}<<"
       if line.match(/^;/)
 	if within_list
 	  trans << "</listitem>\n" unless within_term
@@ -584,42 +677,43 @@ class Tiddler
     trans
   end #}}}
 
+  # translate mediawiki lists into docbook speaking
   def operate_lists(inside)
     #{{{
-    #puts "======="
+    #puts "=== operate_lists of #{@title} ===="
     trans = '';
     stack = Array.new
     inside.each_line { |line|
-      #print "LIGE:#{line}"
+      line.chomp!
       if line.match(/^[#*]/)
+        #puts "list LINE:>>#{line}<<"
 	marker, item = Tiddler.analyze_list(line)
 	line_level = marker.length
 	ordered = marker[-1, 1] == '#'
 	if stack.empty?
-	  #puts "STACK EMPTY"
+	  #puts "STACK was EMPTY"
 	  stack.push(marker)
 	  list = ordered ? 'orderedlist' : 'itemizedlist';
 	  trans << "<#{list}>\n"
 	else
-	  marker = stack.pop
-	  level = marker.length
-	  #puts "STACK:#{marker} @ #{level} % #{line_level}\n"
-	  if (level < line_level)
-	    #puts "ORDERED:#{ordered} #{marker}"
-	    stack.push(marker)
-	    #p stack
-	    #puts "trans=#{trans}"
+	  stacked_marker = stack.pop
+	  stacked_level = stacked_marker.length
+	  #puts "list STACK:#{stacked_marker} @ #{stacked_level} % #{marker} @ #{line_level}\n"
+	  if stacked_level < line_level
 	    list = ordered ? 'orderedlist' : 'itemizedlist';
+	    #print "list new #{list} #{marker} >> "
+	    stack.push(stacked_marker)
+	    #p stack
 	    trans << "\n<#{list}>\n"
 	  else
-	    while (level > line_level)
-	      ordered = marker[-1, 1] == '#'
+	    while (stacked_level > line_level)
+	      ordered = stacked_marker[-1, 1] == '#'
 	      list = ordered ? 'orderedlist' : 'itemizedlist';
-	      trans << "\n</para>\n</listitem>\n"
-	      trans << "</#{list}>"
+	      trans << "\n</para>\n</listitem>\n</#{list}>"
+	      #puts "list back #{marker} #{list}"
 	      break if stack.empty?
-	      marker = stack.pop
-	      level = marker.length
+	      stacked_marker = stack.pop
+	      stacked_level = stacked_marker.length
 	    end
 	    trans << "\n</para>\n</listitem>\n"
 	  end
@@ -628,29 +722,28 @@ class Tiddler
 	trans << "<listitem>\n<para>\n#{item}"
       else
 	trans << "\n" unless stack.empty?
+	#puts "list clear stack NOW."
 	while (!stack.empty?)
 	  marker = stack.pop
 	  level = marker.length
 	  ordered = marker[-1, 1] == '#'
 	  list = ordered ? 'orderedlist' : 'itemizedlist';
-	  trans << "\n</para>\n</listitem>\n"
-	  trans << "</#{list}>\n"
+	  trans << "\n</para>\n</listitem>\n</#{list}>\n"
 	end
 	trans << line
       end
       #p stack
     }
-    #puts "END"
+    #puts "list END"
     trans << "\n" unless stack.empty?
     while (!stack.empty?)
       marker = stack.pop
-      #level = marker.length
-      #puts "STACK:#{marker} @ #{level}\n"
+      #puts "further list STACK:#{marker} @ #{marker.length}\n"
       ordered = marker[-1, 1] == '#'
       list = ordered ? 'orderedlist' : 'itemizedlist';
-      trans << "\n</para>\n</listitem>\n"
-      trans << "</#{list}>\n"
+      trans << "\n</para>\n</listitem>\n</#{list}>\n"
     end
+    #puts "FINAL LIST::#{trans}::"
     trans
   end #}}}
 
@@ -661,7 +754,7 @@ class Tiddler
     incorporate = false
     table_text = ''
     inside.each_line do |line|
-      #puts "LIGNE:#{incorporate}:#{line}"
+      #puts "table LINE:#{incorporate}:#{line}"
       if !incorporate 
 	if line.match(/^\{[|].*+/)
 	  incorporate = true
@@ -691,14 +784,13 @@ class Tiddler
   def self.analyze_tags(htiddlers)
     # bad_tag : list of every bad format tag (form of the tiddler in the docbook)
     bad_tag = Hash.new
-
     # htagged : list of all tags declared in at least a tiddler 
     # (such a tag must also be the title of a tiddler).
     htagged = Hash.new
     htiddlers.each_value do |tiddler|
       tiddler.tags.each do |tag|
 	if tag.start_with?(':')
-	  unless tag.match(/^:(chapter|section|simplesect|note|tip|caution|warning|important|appendix|part)$/)
+	  unless tag.match(/^:(chapter|section|simplesect|(?:foot)?note|tip|caution|warning|important|appendix|part)$/)
 	    if bad_tag.has_key?(tag)
 	      bad_tag[tag] << tiddler.title
 	    else
@@ -716,7 +808,11 @@ class Tiddler
     end
     # tagless: list of all tiddlers without any tag
     tagless = Array.new
-    htiddlers.each_value { |tiddler| tagless << tiddler.title unless tiddler.tags.grep(/^[^:]/).size > 0 }
+    htiddlers.each_value do |tiddler|
+      unless tiddler.immediate?
+	tagless << tiddler.title unless tiddler.tags.grep(/^[^:]/).size > 0
+      end
+    end
     # the head tiddler must be removed from tagless. This is the only one 
     # with the :part tag (and it's its only tag).
     tagless = tagless.reject do |title|
@@ -724,7 +820,7 @@ class Tiddler
       tags.size == 1 && tags[0] == ':part'
     end
 
-    # no_tag : list of every tag that are not corresponding to any tiddler title
+    # no_tag : list of every tag that is not corresponding to any tiddler title
     # (which is wrong).
     no_tag = Array.new
     htagged.each_key { |title| no_tag << title unless htiddlers.has_key?(title) }
@@ -735,21 +831,22 @@ class Tiddler
   end
 
   # recursive management of 'sequential reading'
-  def sequentialize(htiddlers, hseq = Hash.new, repeated = Array.new, unknowns = Array.new)
+  def sequentialize(htiddlers, hseq = Hash.new, repeated = Array.new,
+		    linking_imm = Array.new, unknowns = Array.new)
     sequence = @contents[/\n== sequential reading ==\n.*/m]
     #puts "sequentialize(#{@title})"
     if sequence.nil? && @tags.size == 1 && @tags[0] == ':part'
-      print "The initial tiddler \"#{@title}\" has no sequential reading!\n"
+      puts "The initial tiddler \"#{@title}\" has no sequential reading!"
       exit 1
     end
-    return Hash.new, [], [] if sequence.nil?
+    return Hash.new, [], [], [], [] if sequence.nil?
 
     sibling = Array.new
     num = 0
     sequence.each_line do |line|
       num += 1
       if (num > 2 && line != "\n")
-	#print "line=«#{line}»\n"
+	#puts "line=«#{line}»"
 	tiddler = line.gsub(/^([*#] )?(\[\[)?([^\]|]*)(\]\])?$/, '\3').
 	  gsub(/^([*#] )?\[\[([^|]*)\|[^\]]*\]\]$/, '\2').chomp
 	    if (hseq.has_key?(tiddler))
@@ -757,8 +854,14 @@ class Tiddler
 	      hseq[tiddler] << "\" and then by \"" << @title << "\"\n"
 	      repeated << msg
 	    elsif (htiddlers.has_key?(tiddler))
-	      hseq[tiddler] = @title
-	      sibling << tiddler
+	      if (htiddlers[tiddler].immediate?)
+		msg = "Error, immediate tiddler \"#{tiddler}\" in sequence of tiddler \"" <<
+		@title << "\"\n" 
+		linking_imm << msg
+	      else
+		hseq[tiddler] = @title
+		sibling << tiddler
+	      end
 	    else
 	      msg = "Error, unknown tiddler \"#{tiddler}\" in sequence of tiddler \"" <<
 	      @title << "\"\n" 
@@ -767,47 +870,57 @@ class Tiddler
       end
     end
     @siblings = sibling
-    #sibling.each { |tiddler| print @title + " : includes «#{tiddler}»\n" }
+    #sibling.each { |tiddler| puts @title + " : includes «#{tiddler}»" }
     sibling.each do |tiddler|
-      htiddlers[tiddler].sequentialize(htiddlers, hseq, repeated, unknowns)
+      htiddlers[tiddler].sequentialize(htiddlers, hseq, repeated, linking_imm, unknowns)
     end
-    return hseq, repeated, unknowns
+    return hseq, repeated, linking_imm, unknowns
   end
 
   def self.analyze_sequential_reading(htiddlers)
     head_tiddler = htiddlers['']
     return nil, nil, nil, nil, nil, nil if head_tiddler.nil?
-    hseq, repeated, unknowns = head_tiddler.sequentialize(htiddlers)
-    # checking that no tiddler has ben left apart.
-    pas_inclus = []
+    hseq, repeated, linking_imm, unknowns = head_tiddler.sequentialize(htiddlers)
+    # checking that no tiddler has been left apart.
+    not_there = []
     htiddlers.each_key do |titre|
-      pas_inclus << titre unless hseq.has_key?(titre)
+      unless hseq.has_key?(titre)
+	tiddler = htiddlers[titre]
+	not_there << titre unless tiddler.immediate?
+      end
     end
-    pas_inclus.delete(head_tiddler.title)
-    # missing_tag : list of every tiddler without a tag corresponding
-    # to a tiddler that link the former tiddler in its 'sequential reading' list
+    not_there.delete(head_tiddler.title)
+    # missing_tag: list of every non-immediate tiddler without a tag
+    # corresponding to the tiddler that links to it
+    # in its 'sequential reading' list.
+    # self_tag: list of tiddlers tagging themselves.
     missing_tag = Array.new
     self_tag = Array.new
     htiddlers.each_value do |tiddler|
-      got_it = false
-      tiddler.tags.each do |tag|
-	parent = htiddlers[tag]
-	unless (parent.nil?)
-	  siblings = parent.siblings
-	  #puts "\"#{tiddler.title}\" tag \"#{tag}\" @#{siblings}"
-	  if (!siblings.nil? && siblings.include?(tiddler.title))
-	    got_it = true
-	    break
+      unless (tiddler.immediate?)
+	got_it = false
+	tiddler.tags.each do |tag|
+	  parent = htiddlers[tag]
+	  unless (parent.nil?)
+	    siblings = parent.siblings
+	    #puts "\"#{tiddler.title}\" tag \"#{tag}\" @#{siblings}"
+	    if (!siblings.nil? && siblings.include?(tiddler.title))
+	      got_it = true
+	      break
+	    end
 	  end
 	end
+	missing_tag << tiddler.title unless got_it
       end
-      missing_tag << tiddler.title unless got_it
       self_tag << tiddler.title if tiddler.tags.include?(tiddler.title)
     end
     missing_tag.delete(head_tiddler.title)
     missing_tag = missing_tag.sort{|a, b| a.casecmp(b)}
+    # linking_imm: tiddlers with an immediate tiddler in the sequential reading
+    # tagging_imm: tiddlers tagging an immediate tiddler
     self_tag = self_tag.sort{|a, b| a.casecmp(b)}
-    return pas_inclus, repeated, unknowns, missing_tag, self_tag, head_tiddler
+    #p missing_tag
+    return not_there, repeated, linking_imm, unknowns, missing_tag, self_tag, head_tiddler
   end
 
   def self.analyse_pictures(htiddlers)
@@ -870,7 +983,11 @@ class Tiddler
       end
     end
     inside << sep << @docbook_end
-    inside << finish_docbook if init
+    if init
+      inside << finish_docbook 
+      inside.gsub!(/<para>\s*<\/para>\s*/, '').
+	gsub!(/<legalnotice>\s*<\/legalnotice>\s*/, '')
+    end
     inside
   end
 

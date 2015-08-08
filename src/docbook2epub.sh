@@ -30,11 +30,11 @@ work() {
   esac
   destdir=${epub%/*}
   [[ $destdir == $epub ]] && destdir=.
-  #echo "epub : $epub"
-  #echo "docbook : $docbook"
-  #echo "gfxdir : $gfxdir"
-  #echo "tmpdir : $tmpdir"
-  #echo "destdir : $destdir"
+  echo "epub : $epub"
+  echo "docbook : $docbook"
+  echo "gfxdir : $gfxdir"
+  echo "tmpdir : $tmpdir"
+  echo "destdir : $destdir"
   book=$destdir/${docbook%.xml}.epub
   [[ -f $epub ]] && rm -f $epub
   [[ -f $book ]] && rm -f $book
@@ -42,6 +42,7 @@ work() {
   [[ -f $epub ]] || mv $book $epub
   # xmlto is buggy and we have to make a corrections because
   # file 'mimetype' has a line feed character (and thus cannot validate).
+  cp $epub /tmp/orig.epub # pour debug
   [[ -d $tmpdir ]] && rm $tmpdir -rf
   unzip -o $epub -d $tmpdir
   echo -n 'application/epub+zip' >$tmpdir/mimetype
