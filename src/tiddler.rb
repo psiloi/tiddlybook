@@ -1,6 +1,6 @@
 # transcript tiddlywiki into mediawiki then into docbook
 #
-# coyright 2013-2014 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
+# coyright 2013-2015 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
 
 # This file is part of TiddlyBook.
 #
@@ -19,6 +19,8 @@
 
 
 # classes for the analyze and translation into mediawiki of tiddlywiki tables
+
+require_relative 'i18n.rb'
 
 class TiddlyCell
   attr_reader :contents
@@ -332,7 +334,7 @@ class Tiddler
     fixing = true
     while (fixing) do
       fixing = false
-      trans.gsub!(/\[([a-z]{3,8}:[^]\[]+)\[{2}([^\]]+)\]{2}([^\]]*)\]/) do |str|
+      trans.gsub!(/\[([a-z]{3,8}:[^\]\[]+)\[{2}([^\]]+)\]{2}([^\]]*)\]/) do |str|
 	fixing = true
 	'[' << $1 << $2 << $3 << ']'
       end
@@ -341,7 +343,9 @@ class Tiddler
     #puts "=== step 5 #{@title} ===\n#{trans}\n======="# ; trans = trans .
     trans.gsub!(/(\[[a-z]{3,8}:)''/, '\1//')
     #puts "=== step 6 #{@title} ===\n#{trans}\n======="
-    translate_tables(trans)
+    trans = translate_tables(trans)
+    #puts "=== final #{@title} ===\n#{trans}\n======="
+    trans
   end
 
   def translate_img(trans)
@@ -371,8 +375,9 @@ class Tiddler
 
   # translate tiddlywiki tables into objects for later tranlation into mediawiki
   def translate_tables(text)
+    #{{{
     return text unless text.match(/^|/m)
-    #puts "translate_tables of\n-----------\n#{text}\n------------"
+    #puts "translate_tables of #{@title}\n-----------\n#{text}\n------------"
     table = nil
     title = ''
     nb_headers_rows = 0
@@ -445,14 +450,15 @@ class Tiddler
       else
 	if (state != 0)
 	  state = 0
-	  trans += translate_tiddlytable(table, nb_headers_rows, title)
+	  trans << translate_tiddlytable(table, nb_headers_rows, title)
 	end
-	trans += line
+	trans << line
       end
     end
-    trans += translate_tiddlytable(table, nb_headers_rows, title) if state != 0
-    #puts "=== table to mediawiki ===\n#{trans}\n==="
+    trans << translate_tiddlytable(table, nb_headers_rows, title) if state != 0
+    #puts "=== table to mediawiki for #{@title} ===\n#{trans}\n==="
     trans
+  #}}}
   end
 
   def translate_tiddlytable(table, nb_headers_rows, title)	
@@ -473,13 +479,13 @@ class Tiddler
     trans
   end
 
-  # translate conmtents to docbook
+  # translate contents to docbook
   #
   # @param tiddlers Hash
   #	 hashtable of all the tiddlers
   def translate_to_docbook(tiddlers)
     @docbook_begin, @docbook_end = mediawiki_to_docbook(tiddlers)
-    #puts "TRANS #{@title} DOCBOOK #{@docbook_begin}=== END" 
+    puts "TRANS #{@title} DOCBOOK #{@docbook_begin}=== END" 
   end
 
   # create a docbook link or insert immediate contents
@@ -516,7 +522,10 @@ class Tiddler
   end
 
   def mediawiki_to_docbook(tiddlers)
-    inside = @contents[/^.*(?=\n+== sequential reading ==\n)/m]
+    seqread = International.instance.sequential_reading
+    regexp = Regexp.new('.*(?=\n+== ' + Regexp.escape(seqread) + ' ==\n)', Regexp::MULTILINE)
+    inside = @contents[regexp]
+    #inside = @contents[/^.*(?=\n+== sequential reading ==\n)/m]
     inside = @contents if inside.nil?
     #puts "mediawiki_to_docbook of #{@title}, inside ====\n#{inside}\n===="
     trans = inside .
@@ -757,7 +766,7 @@ class Tiddler
     incorporate = false
     table_text = ''
     inside.each_line do |line|
-      #puts "table LINE:#{incorporate}:#{line}"
+      #puts "table \"#{@title}\" LINE:#{incorporate}:#{line}"
       if !incorporate 
 	if line.match(/^\{[|].*+/)
 	  incorporate = true
@@ -825,18 +834,32 @@ class Tiddler
 
     # no_tag : list of every tag that is not corresponding to any tiddler title
     # (which is wrong).
-    no_tag = Array.new
-    htagged.each_key { |title| no_tag << title unless htiddlers.has_key?(title) }
-
+    #no_tag = Array.new
+    #htagged.each_key { |title| no_tag << title unless htiddlers.has_key?(title) }
+    no_tag = Hash.new
+    htagged.each_key do |tag|
+      unless htiddlers.has_key?(tag)
+	titles = Array.new
+	htagged[tag].each { |tiddler| titles << tiddler.title }
+	no_tag[tag] = titles.sort{|a, b| a.casecmp(b)}
+      end
+    end
     tagless = tagless.sort{|a, b| a.casecmp(b)}
-    no_tag = no_tag.sort{|a, b| a.casecmp(b)}
     return tagless, no_tag, bad_tag
   end
 
   # recursive management of 'sequential reading'
   def sequentialize(htiddlers, hseq = Hash.new, repeated = Array.new,
 		    linking_imm = Array.new, unknowns = Array.new)
-    sequence = @contents[/\n== sequential reading ==\n.*/m]
+    seqread = International.instance.sequential_reading
+    regexp = Regexp.new('\n== ' + Regexp.escape(seqread) + ' ==\n.*', Regexp::MULTILINE)
+    if @contents.nil?
+      puts "sequentialize: no contents defined for tiddler #{@title}"
+      puts "contents=#{@contents}"
+      exit 1
+    end
+    sequence = @contents[regexp]
+    #sequence = @contents[/\n== sequential reading ==\n.*/m]
     #puts "sequentialize(#{@title})"
     if sequence.nil? && @tags.size == 1 && @tags[0] == ':part'
       puts "The initial tiddler \"#{@title}\" has no sequential reading!"
@@ -883,6 +906,7 @@ class Tiddler
   def self.analyze_sequential_reading(htiddlers)
     head_tiddler = htiddlers['']
     return nil, nil, nil, nil, nil, nil if head_tiddler.nil?
+    #puts "analyze_sequential_reading of #{@title}"
     hseq, repeated, linking_imm, unknowns = head_tiddler.sequentialize(htiddlers)
     # checking that no tiddler has been left apart.
     not_there = []
@@ -949,9 +973,11 @@ class Tiddler
     wiki = ''
     wiki << "== #{@title} ==\n" unless without_title
     if @siblings.nil? || @siblings.size == 0
-      wiki << @contents << "\n"
+      wiki << @contents.chomp << "\n\n"
     else
-      wiki << @contents[/^.*(?=\n+== sequential reading ==\n)/m] << "\n"
+      seqread = International.instance.sequential_reading
+      regexp = Regexp.new('.*(?=\n+== ' + Regexp.escape(seqread) + ' ==\n)', Regexp::MULTILINE)
+      wiki << @contents[regexp].chomp << "\n\n"
       @siblings.each { |title| wiki << htiddlers[title].wiki_single(htiddlers) }
     end
     wiki
@@ -965,7 +991,9 @@ class Tiddler
       if @siblings.nil? || @siblings.size == 0
 	dest.puts @contents
       else
-	dest.puts @contents[/^.*(?=\n+== sequential reading ==\n)/m]
+	seqread = International.instance.sequential_reading
+	regexp = Regexp.new('.*(?=\n+== ' + Regexp.escape(seqread) + ' ==\n)', Regexp::MULTILINE)
+	dest.puts @contents[regexp]
 	@siblings.each do |title|
 	  list << "\n" << htiddlers[title].write_wiki_files(rep, htiddlers)
 	end

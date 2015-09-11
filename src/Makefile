@@ -1,8 +1,29 @@
 # makefile to generate example ebook
-.PHONY: clean schemas.makefile links
+# coyright 2013-2015 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
+
+# This file is part of TiddlyBook.
+#
+#    TiddlyBook is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    TiddlyBook is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with TiddlyBook.  If not, see <http://www.gnu.org/licenses/>
+
+.PHONY: clean schemas.makefile links list
 
 ALL: EPUB PDF MOBI EPUB_PNG MOBI_PNG 
-	
+
+# list all targets of this Makefile makefile
+list:
+	@sh -c "$(MAKE) -p no_targets__ -f $(lastword $(MAKEFILE_LIST)) | awk -F':' '/^[a-zA-Z0-9][^\$$#\/\\t=]*:([^=]|$$)/ {split(\$$1,A,/ /);for(i in A)print A[i]}' | grep -v '__\$$' | sort" 2>/dev/null
+
 # Mostly, for a new project, one has only to adapt
 # all the variables below, and not care about the
 # remaimining of the makefile.
@@ -10,25 +31,32 @@ ALL: EPUB PDF MOBI EPUB_PNG MOBI_PNG
 # The direct way is not producing good results as of 2014/08/29.
 # One has to choose which pdf to make by default.
 # Also, the original svg files are in ${SCHEMAS}-inkscape
-PDF_DIRECT=../documents/sample-direct.pdf
-PDF_CONV=../documents/sample-conv.pdf
+DOC=../documents
+SCHEMAS=../schemas
+WIKI_CORENAME=wiki
+PROJECT_CORENAME=project
+EBOOK_CORENAME=sample
+LANGUAGE?=en
+WIKI_FILENAME=${WIKI_CORENAME}_${LANGUAGE}
+PROJECT_FILENAME=${PROJECT_CORENAME}_${LANGUAGE}
+EBOOK_FILENAME=${EBOOK_CORENAME}_${LANGUAGE}
+PDF_DIRECT=${DOC}/${EBOOK_FILENAME}-direct.pdf
+PDF_CONV=${DOC}/${EBOOK_FILENAME}-conv.pdf
 PDF=${PDF_CONV}
-EPUB=../documents/sample.epub
-EPUB_PNG=../documents/sample_png.epub
-MOBI=../documents/sample.mobi
-MOBI_PNG=../documents/sample_png.mobi
-PROJECT_HTML=../documents/project.html
-PROJECT_RB =project.rb
-PROJECT_XML =project.xml
-PROJECT_PNG_RB =project_png.rb
-PROJECT_PNG_XML =project_png.xml
+EPUB=${DOC}/${EBOOK_FILENAME}.epub
+EPUB_PNG=${DOC}/${EBOOK_FILENAME}_png.epub
+MOBI=${DOC}/${EBOOK_FILENAME}.mobi
+MOBI_PNG=${DOC}/${EBOOK_FILENAME}_png.mobi
+WIKI_HTML=${DOC}/${WIKI_FILENAME}.html
+PROJECT_RB =${PROJECT_FILENAME}.rb
+PROJECT_XML =${PROJECT_FILENAME}.xml
+PROJECT_PNG_RB =${PROJECT_FILENAME}_png.rb
+PROJECT_PNG_XML =${PROJECT_FILENAME}_png.xml
 MAKEFILE_SVG=schemas-svg.makefile
 MAKEFILE_PNG=schemas-png.makefile
 FIGS=figs
 FIGS_SVG=figs-svg
 FIGS_PNG=figs-png
-DOC=../documents
-SCHEMAS=../schemas
 SVG_WIDTH=320
 PNG_WIDTH=400
 
@@ -63,29 +91,31 @@ clean:
 	  ${FIGS_SVG} \
 	  ${FIGS_PNG}
 
-# generate links so that the Makefile shall work.
+# generate links for graphics and so that the Makefile shall work.
 links:
-	[ -f docbook2epub.sh ]] || ln -s ../../../tiddlybook/trunk/src/docbook2epub.sh
-	[ -f generate-schemas-makefile.pl ]] || ln -s ../../../tiddlybook/trunk/src/generate-schemas-makefile.pl
-	[ -f get-tiddlers.pl ]] || ln -s ../../../tiddlybook/trunk/src/get-tiddlers.pl
-	[ -f wiki2docbook.rb ]] || ln -s ../../../tiddlybook/trunk/src/wiki2docbook.rb
-
-${PROJECT_RB} : ${PROJECT_HTML}
+	@test -e ../documents/figs || ln -s ../schemas/figs-svg ../documents/figs
+	@test -e docbook2epub.sh || ln -s ../../../tiddlybook/trunk/src/docbook2epub.sh
+	@test -e generate-schemas-makefile.pl || ln -s ../../../tiddlybook/trunk/src/generate-schemas-makefile.pl
+	@test -e get-tiddlers.pl || ln -s ../../../tiddlybook/trunk/src/get-tiddlers.pl
+	@test -e wiki2docbook.rb || ln -s ../../../tiddlybook/trunk/src/wiki2docbook.rb
+	@test -e i18n.rb || ln -s ../../../tiddlybook/trunk/src/i18n.rb
+#
+${PROJECT_RB} : ${WIKI_HTML}
 	./get-tiddlers.pl $< >$@
 
 ${PROJECT_XML} : ${PROJECT_RB}
-	./wiki2docbook.rb -d $@ $<
+	./wiki2docbook.rb -d $@ -e $< -l ${LANGUAGE}
 	jing /usr/share/xml/docbook/schema/rng/5.0/docbook.rng $@
 	
 ${PROJECT_PNG_RB} : ${PROJECT_RB}
 	sed -e 's/\.svg\b/.png/g' <$< >$@
 
 ${PROJECT_PNG_XML} : ${PROJECT_PNG_RB}
-	./wiki2docbook.rb -d $@ $<
+	./wiki2docbook.rb -d $@ -e $< -l ${LANGUAGE}
 	jing /usr/share/xml/docbook/schema/rng/5.0/docbook.rng $@
 	
 check: ${PROJECT_RB}
-	./wiki2docbook.rb -c $<
+	./wiki2docbook.rb -c $< -e $< -l ${LANGUAGE}
 
 schemas_svg: ${MAKEFILE_SVG}
 	make -f $<

@@ -46,7 +46,7 @@ DAMAGE.
 <!--}}}-->
 
 <!--PRE-HEAD-END-->
-<title> sample book - with a few interesting things inside </title>
+<title> livre échantillon - avec quelques trucs intéressants dedans </title>
 <style id="styleArea" type="text/css">
 #saveTest {display:none;}
 #messageArea {display:none;}
@@ -521,8 +521,8 @@ noscript {display:none;} /* Fixes a feature in Firefox 1.5.0.2 where print previ
 </div>
 <!--POST-SHADOWAREA-->
 <div id="storeArea">
-<div title="DefaultTiddlers" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141838" modified="201408291526" changecount="2">
-<pre>[[the beginning]]</pre>
+<div title="DefaultTiddlers" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141838" modified="201508111917" changecount="3">
+<pre>[[au commencement]]</pre>
 </div>
 <div title="Footnote: make EPUB" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508072214" tags=":footnote" changecount="1">
 <pre>Typing ''make EPUB'' is also a possibility to just get the epub out of the mediawiki. This avoid the translation to pdf, which is a slow process.</pre>
@@ -534,18 +534,18 @@ noscript {display:none;} /* Fixes a feature in Firefox 1.5.0.2 where print previ
 * [[DefaultTiddlers]]: Contains the names of the tiddlers that you want to appear when the ~TiddlyWiki is opened
 You'll also need to enter your username for signing your edits: &lt;&lt;option txtUserName&gt;&gt;</pre>
 </div>
-<div title="MainMenu" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141837" modified="201408291519" tags=":chapter" changecount="4">
-<pre>[[the beginning]]
+<div title="MainMenu" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141837" modified="201508111918" tags=":chapter" changecount="5">
+<pre>[[au commencement]]
 [[version]]
 [[licence]]
 ----
 [[GettingStarted]]</pre>
 </div>
-<div title="SiteSubtitle" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201408291518" changecount="1">
-<pre>with a few interesting things inside</pre>
+<div title="SiteSubtitle" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201408291518" modified="201508101949" changecount="2">
+<pre>avec quelques trucs intéressants dedans</pre>
 </div>
-<div title="SiteTitle" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141835" modified="201408291516" changecount="3">
-<pre>sample book</pre>
+<div title="SiteTitle" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141835" modified="201508101950" changecount="4">
+<pre>livre échantillon</pre>
 </div>
 <div title="Tip: Why change the title of immediate tiddler?" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508081304" tags=":tip" changecount="1">
 <pre>Why change the title of immediate tiddler? It is never seen and if it is good as a label in the link, it will be good as a title.</pre>
@@ -553,7 +553,26 @@ You'll also need to enter your username for signing your edits: &lt;&lt;option t
 <div title="Warning: Never use footnote inside a wiki list!" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508072207" modified="201508072216" tags=":warning" changecount="3">
 <pre>Never use footnote inside a wiki list! It would prevent translating the wiki to docbook and thus disallow ebook or pdf outputs. This is yet a minor problem in our opinions.</pre>
 </div>
-<div title="bugs" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508050830" modified="201508081245" tags="[[the beginning]] :warning" changecount="13">
+<div title="au commencement" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141839" modified="201508111915" tags=":part" changecount="51">
+<pre>Ceci est un livre d'exemple.
+
+This is a sample book, in alpha version. Note that to write an //alpha// letter, ''α'', I have to use an //alpha// utf-8 character and not an html entity. ''Because html entities are cumbersome to use with docbook 5 and that there is no support for them yet.'' Note that if you don't have the special character at hand, you can use its html entity in the tiddler, save the tiddler and copy your looked-after character.
+
+[[Warning! Bugs lurking!|bugs]]
+
+Now somme graphics. First, a simple svg graphics witout any glyph.
+
+[img[some boxes|figs/notext/boxes.svg]]
+
+Cool enough. Now, a more demanding svg graphics with a ''hello'' glyph inside. Some ebook readers may not display it properly.
+
+[img[saying 'hello' with a few boxes|figs/text/hello.svg]]
+
+!! lecture séquentielle
+[[version]]
+[[system]]</pre>
+</div>
+<div title="bugs" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508050830" modified="201508112003" tags="[[au commencement]] :warning" changecount="14">
 <pre>There used to be some 'problems with ''odd'' number of couples of quotes within a tiddler. That has been fixed'</pre>
 </div>
 <div title="immediate tiddlers" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508071653" modified="201508072211" tags=":tip" changecount="8">
@@ -569,8 +588,8 @@ Immediate tiddlers must not have any tag beside their colon tag defining their n
 <div title="not yet done" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508072149" tags=":footnote" changecount="1">
 <pre>As of 2015/08/08 the master wiki is not translated into a reader wiki yet. Would that be so useful? Anyway, there were more to be done first!</pre>
 </div>
-<div title="system" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309151203" modified="201508082025" tags="[[the beginning]] :chapter" changecount="35">
-<pre>The [[TiddlyBook|https://github.com/psiloi/tiddlybook]] software runs under ''linux''. It could surely be made run on ~MacOS. ''You must have installed ~TiddlyBook and got it running'' in order to make docbook, ebooks and pdf out of this wiki.
+<div title="system" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309151203" modified="201508111916" tags="[[au commencement]] :chapter" changecount="38">
+<pre>Le logiciel [[TiddlyBook|https://github.com/psiloi/tiddlybook]] fonctionne sous ''linux''. It could surely be made run on ~MacOS. ''You must have installed ~TiddlyBook and got it running'' in order to make docbook, ebooks and pdf out of this wiki.
 
 The rules are written on a master wiki, which is a [[tiddlywiki|http://tiddlywiki.com/]]. It is helpful in being a wiki you have in a single html file. It has a timeline feature which helps in knowing what you were doing recently. It has a tag system. But it does not have recovery.
 
@@ -600,27 +619,10 @@ In order to produce either pdf or epub, we first translate to docbook 5.0 and ch
 
 In order to produce the default ebook, just type ''make''. For a more specific choice, you have to precise a target. The list of the target can be read with 'make -l'. In particular to cleanup the project type ''make clean''. To only produce and test the docbook, just type ''make project.xml'' (//project.xml// is the name of the docbook file). [[Footnote: make EPUB]]
 
-!! sequential reading
+!! lecture séquentielle
 * [[licence]]</pre>
 </div>
-<div title="the beginning" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141839" modified="201508071344" tags=":part" changecount="48">
-<pre>This is a sample book, in alpha version. Note that to write an //alpha// letter, ''α'', I have to use an //alpha// utf-8 character and not an html entity. ''Because html entities are cumbersome to use with docbook 5 and that there is no support for them yet.'' Note that if you don't have the special character at hand, you can use its html entity in the tiddler, save the tiddler and copy your looked-after character.
-
-[[Warning! Bugs lurking!|bugs]]
-
-Now somme graphics. First, a simple svg graphics witout any glyph.
-
-[img[some boxes|figs/notext/boxes.svg]]
-
-Cool enough. Now, a more demanding svg graphics with a ''hello'' glyph inside. Some ebook readers may not display it properly.
-
-[img[saying 'hello' with a few boxes|figs/text/hello.svg]]
-
-!! sequential reading
-[[version]]
-[[system]]</pre>
-</div>
-<div title="version" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141837" modified="201508052144" tags="[[the beginning]] :chapter" changecount="8">
+<div title="version" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141837" modified="201508111915" tags="[[au commencement]] :chapter" changecount="9">
 <pre>version d'essai</pre>
 </div>
 </div>
