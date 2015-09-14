@@ -157,7 +157,7 @@ class WikiTable
 	end
       when /^\{[|]/ then row = []
       else
-	puts "mediawiki error in table with line #{line}"
+	puts "mediawiki error in table \"#{@title}\" with line \"#{line}\""
 	exit 1
       end
     end
@@ -309,7 +309,10 @@ class Tiddler
       gsub(/^!!! *(.*)$/, '=== \1 ===') .
       gsub(/^!! *(.*)$/, '== \1 ==') .
       gsub(/^! *(.*)$/, '= \1 =') .
-      gsub(/\&lt;\/?nowiki\&gt;/, '') # nowiki is of use because of -- (which is not mediawiki code)
+      gsub(/\&lt;\/?nowiki\&gt;/, '') . # nowiki is of use because of -- (which is not mediawiki code)
+      # Handle non breaking space entities into non breaking spaces.
+      # Other entites are dysfunctional, but we don't know how to support entities in docbook yet.
+      gsub(/\&amp;nbsp;/, "\u00a0")
     #puts "before translate_img #{@title} **************\n#{trans}\n-------"
     trans = translate_img(trans)
     #puts "=== step 1 #{@title} ===\n#{trans}\n======="
@@ -344,6 +347,7 @@ class Tiddler
     trans.gsub!(/(\[[a-z]{3,8}:)''/, '\1//')
     #puts "=== step 6 #{@title} ===\n#{trans}\n======="
     trans = translate_tables(trans)
+    # restore html entities
     #puts "=== final #{@title} ===\n#{trans}\n======="
     trans
   end
@@ -378,6 +382,7 @@ class Tiddler
     #{{{
     return text unless text.match(/^|/m)
     #puts "translate_tables of #{@title}\n-----------\n#{text}\n------------"
+    protector = /(\[\[[^\]\|]+)\|([^\]\|]+\]\])/
     table = nil
     title = ''
     nb_headers_rows = 0
@@ -393,7 +398,8 @@ class Tiddler
 	  nb_headers_rows = 0
 	  rownum = 0
 	end
-	if line.match(/^\|[^\|]+\|c$/)
+	if line.match(/^\|.+\|c$/)
+	#if line.match(/^\|[^\|]+\|c$/)
 	  line.chomp!
 	  title = line.sub(/^.(.*).c$/, '\1')
 	elsif line.match(/^\|.+\|h?$/)
@@ -403,18 +409,31 @@ class Tiddler
 	    nb_headers_rows += 1
 	    #puts "header : #{line}"
 	  end
+          protected_line = line.gsub(protector, '\1{@&@}\2')
+          smart = protected_line != line
 	  state = 2
 	  hspan = line.match(/\|(?:&gt;|>)\|./)
 	  vspan = line.match(/\|~\|./)
 	  new_cells = []
 	  if hspan.nil? && vspan.nil?
-	    line[0..-2].gsub(/\|([^|]+)/) { |cell| new_cells << TiddlyCell.new($1) }
+            #puts "TABLE NOSPAN #{@title} : #{protected_line}" if smart 
+            unless smart
+	      protected_line[0..-2].gsub(/\|([^|]+)/) { |cell| new_cells << TiddlyCell.new($1) }
+            else
+	      protected_line[0..-2].gsub(/\|([^|]+)/) do |cell|
+                contents = $1.gsub(/\{@&@\}/, '|')
+                #puts "TABLE SUBST #{@title} : #{contents}"
+                new_cells << TiddlyCell.new(contents)
+              end
+            end
 	  else
-	    cells = line.split('|')
+            #puts "TABLE SPAN #{@title} : #{protected_line}" if smart
+	    cells = protected_line.split('|')
 	    cells.delete_at(0)
 	    colspan = 0
 	    (1..cells.count).each do |cellnum|
 	      cell = cells[cellnum - 1]
+              cell.gsub!(/\{@&@\}/, '|') if smart
 	      if cell == '&gt;' || cell == '>'
 		# colspan on the column on the right
 		colspan += 1
@@ -475,7 +494,7 @@ class Tiddler
       row.each { |cell| trans += cell.to_mediawiki(beg) }
     end
     trans << "|}\n"
-    #puts "=== begin TABLE ===\n#{trans}=== end TABLE ==="
+    puts "=== begin TABLE in #{@title} ===\n#{trans}=== end TABLE in #{@title} ==="
     trans
   end
 
