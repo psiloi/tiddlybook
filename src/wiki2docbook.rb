@@ -1,6 +1,6 @@
 #!/usr/bin/ruby -Ku
 # use information from generated ruby file to create a docbook v5.
-# coyright 2013-2015 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
+# copyright 2013-2015 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com>
 
 # This file is part of TiddlyBook.
 #
@@ -23,6 +23,26 @@ require 'ostruct'
 
 require_relative 'tiddler'
 
+class Array
+  def do_list(sep)
+    case count 
+    when 0 then ''
+    when 1 then fetch(0).to_s << sep
+    else slice(1, length).do_list(', ') << fetch(0).to_s << sep
+    end
+  end
+  protected :do_list
+
+  def list
+    reverse.do_list('')
+  end
+    
+  def quote_list
+    map { |item| "\"#{item}\"" }.list
+  end
+    
+end
+
 class SupportedOptionParse
   def self.parse(args)
     # The options specified on the command line will be collected in *options*.
@@ -34,7 +54,7 @@ class SupportedOptionParse
     options.filename = 'project.xml'
     options.dirname = 'project'
 
-    opts = OptionParser.new do |opts|
+    got_options = OptionParser.new do |opts|
       opts.banner = 'Usage: wiki2docbook.rb [options]'
 
       opts.separator ''
@@ -81,7 +101,7 @@ class SupportedOptionParse
       end
     end
 
-    opts.parse!(args)
+    got_options.parse!(args)
     options
   end  # parse()
 end
@@ -132,6 +152,11 @@ def fetch_intro_data(tiddlers, site_title, site_subtitle)
   intro_data
 end
 
+# report errors detected during standard analyse of the tiddlers set
+#
+# @param tiddlers: all the tiddlers
+# @param language: abbreviation of the language (for sequential readind L12n)
+# @return head: root tiddler
 def report_errors(tiddlers, language)
   International.instance.setup(language)
   not_tagged, nonexistent_tags, bad_tag = Tiddler.analyze_tags(tiddlers)
@@ -142,21 +167,14 @@ def report_errors(tiddlers, language)
   end
   if bad_tag.size > 0
     bad_tag.each_key do |tag|
-      print "Error: unknown format tag \"#{tag}\" occurs in the following tiddler(s):\n"
-      sep = ''
-      bad_tag[tag].each { |title| print sep << title; sep = ', ' }
-      puts
+      puts "Error: unknown format tag \"#{tag}\" occurs in the following tiddler(s):\n" <<
+        bad_tag[tag].quote_list << '.'
     end
   end
   if nonexistent_tags.size > 0
     nonexistent_tags.each_key do |tag|
-      print "Error: tiddler \"#{tag}\" does not exists but is tagged by "
-      sep = ''
-      nonexistent_tags[tag].each do |title|
-	print "#{sep}\"#{title}\""
-	sep = ', '
-      end
-      puts '.'
+      puts "Error: tiddler \"#{tag}\" does not exists but is tagged by " <<
+        nonexistent_tags[tag].quote_list << '.'
     end
   end
   if bad_tag.size > 0 || nonexistent_tags.size > 0 || not_tagged.size > 0
@@ -165,11 +183,11 @@ def report_errors(tiddlers, language)
   end
   not_included, repeated, linking_imm, unknown, missing_tag,
   self_tag, head = Tiddler.analyze_sequential_reading(tiddlers)
-  if (head == nil)
+  if (head.nil?)
     print "Error: no initial tiddler\n"
     exit 1
   end
-  tagging_imm = [] # a calculer via htiddlers mais pas encore fait
+  tagging_imm = [] # todo: tagging_imm to be computed with htiddlers
   if (not_included.size != 0 || repeated.size != 0 || linking_imm.size != 0 ||
       tagging_imm.size != 0 || unknown.size != 0 || missing_tag.size != 0 ||
       self_tag.size != 0)
@@ -184,9 +202,25 @@ def report_errors(tiddlers, language)
     print "Sequential Reading Error\n"
     exit 1
   end
+  ent_err = Entities.instance.unsupported_entities
+  if (ent_err.count > 0)
+    print "unsupported entit" << ((ent_err.count == 1) ? 'y' : 'ies') << ':'
+    ent_err.each { |ent| print " &#{ent};" }
+    puts
+    exit 1
+  end
   head
 end
 
+# extract necessary information from the ruby source transcripting the wiki
+#
+# @param extension: name of the ruby source to be loaded
+# @param language: two letters ISO abbreviation of the language
+# @return (tiddlers, site_title, site_subtitle, head):
+  # @item tiddlers: hash of all the tiddlers
+  # @item site_title: title of the book
+  # @item site_subtitle: book subtitle
+  # @item head: root tiddler
 def extract_info(extension, language)
   puts "loading #{extension}"
   load extension
@@ -209,7 +243,7 @@ when :docbook
   intro_data = fetch_intro_data(tiddlers, site_title, site_subtitle)
   puts "generating docbook #{options.filename}"
   File.open(options.filename, 'w') do |dbf|
-    dbf.print head.docbook(tiddlers, intro_data, true)
+    dbf.print head.docbook(tiddlers, intro_data, options.language, true)
   end
 when :single_wiki
   tiddlers, site_title, site_subtitle, head = extract_info(options.extension, options.language)

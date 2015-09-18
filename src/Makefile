@@ -1,5 +1,5 @@
 # makefile to generate example ebook
-# coyright 2013-2015 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
+# copyright 2013-2015 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
 
 # This file is part of TiddlyBook.
 #

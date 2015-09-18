@@ -1,6 +1,6 @@
 # transcript tiddlywiki into mediawiki then into docbook
 #
-# coyright 2013-2015 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
+# copyright 2013-2015 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com>
 
 # This file is part of TiddlyBook.
 #
@@ -20,7 +20,8 @@
 
 # classes for the analyze and translation into mediawiki of tiddlywiki tables
 
-require_relative 'i18n.rb'
+require_relative 'i18n'
+require_relative 'entities'
 
 class TiddlyCell
   attr_reader :contents
@@ -312,7 +313,7 @@ class Tiddler
       gsub(/\&lt;\/?nowiki\&gt;/, '') . # nowiki is of use because of -- (which is not mediawiki code)
       # Handle non breaking space entities into non breaking spaces.
       # Other entites are dysfunctional, but we don't know how to support entities in docbook yet.
-      gsub(/\&amp;nbsp;/, "\u00a0")
+      gsub(/\&amp;([a-zA-Z]+);/) { |match| (Entities.instance.include($1)) ? "\&#{$1};" : $& }
     #puts "before translate_img #{@title} **************\n#{trans}\n-------"
     trans = translate_img(trans)
     #puts "=== step 1 #{@title} ===\n#{trans}\n======="
@@ -494,7 +495,7 @@ class Tiddler
       row.each { |cell| trans += cell.to_mediawiki(beg) }
     end
     trans << "|}\n"
-    puts "=== begin TABLE in #{@title} ===\n#{trans}=== end TABLE in #{@title} ==="
+    #puts "=== begin TABLE in #{@title} ===\n#{trans}=== end TABLE in #{@title} ==="
     trans
   end
 
@@ -714,7 +715,7 @@ class Tiddler
     #puts "=== operate_lists of #{@title} ===="
     trans = '';
     stack = Array.new
-    inside.each_line { |line|
+    inside.each_line do |line|
       line.chomp!
       if line.match(/^[#*]/)
         #puts "list LINE:>>#{line}<<"
@@ -749,14 +750,15 @@ class Tiddler
 	    trans << "\n</para>\n</listitem>\n"
 	  end
 	  stack.push(marker)
-	end
+	end #stack.empty?
 	trans << "<listitem>\n<para>\n#{item}"
-      else
+      else # line.match
+        # the table is over
 	trans << "\n" unless stack.empty?
 	#puts "list clear stack NOW."
 	while (!stack.empty?)
 	  marker = stack.pop
-	  level = marker.length
+	  line_level = 0 # just nicer for clarity's sake
 	  ordered = marker[-1, 1] == '#'
 	  list = ordered ? 'orderedlist' : 'itemizedlist';
 	  trans << "\n</para>\n</listitem>\n</#{list}>\n"
@@ -764,7 +766,7 @@ class Tiddler
 	trans << line
       end
       #p stack
-    }
+    end # inside.each_line
     #puts "list END"
     trans << "\n" unless stack.empty?
     while (!stack.empty?)
@@ -1021,15 +1023,15 @@ class Tiddler
     list
   end
 
-  def docbook(htiddlers, intro_data, init = false)
+  def docbook(htiddlers, intro_data, language, init = false)
     sep = "\n"
     inside = ''
-    inside = init_docbook(intro_data) if init
+    inside = init_docbook(language, intro_data) if init
     inside << @docbook_begin
     unless @siblings.nil? || @siblings.size == 0
       sep = ''
       @siblings.each do |title|
-	inside << htiddlers[title].docbook(htiddlers, intro_data)
+	inside << htiddlers[title].docbook(htiddlers, intro_data, language)
       end
     end
     inside << sep << @docbook_end
@@ -1041,7 +1043,7 @@ class Tiddler
     inside
   end
 
-  def init_docbook(intro_data)
+  def init_docbook(language, intro_data)
     xml_author = ''
     intro_data['authors'].each do |author|
       xml_author <<       
@@ -1060,8 +1062,19 @@ class Tiddler
     puts "legalese = " << legalese
     puts "title = " << intro_data['title']
     puts "subtitle = " << intro_data['subtitle']
-    '<?xml version="1.0" encoding="utf-8"?>' << "\n" <<
-    '<book xml:lang="fr" xmlns="http://docbook.org/ns/docbook" version="5.0"' << "\n" <<
+    included_entities = Entities.instance.included_entities
+    entities_data = ''
+    if included_entities.count > 0
+      entities_data = "<!DOCTYPE book [\n"
+      included_entities.each do |key, value|
+        entities_data << "<!ENTITY #{key} \"&\##{value};\">\n"
+      end
+      entities_data << "]>\n"
+    end
+    #puts "entities_data=#{entities_data}"
+    '<?xml version="1.0" encoding="utf-8"?>' << "\n" << entities_data <<
+    "<book xml:lang=\"#{language}\"\n" <<
+    '     xmlns="http://docbook.org/ns/docbook" version="5.0"' << "\n" <<
     '     xmlns:xlink="http://www.w3.org/1999/xlink"' << "\n" <<
     '     xmlns:svg="http://www.w3.org/2000/svg"' << "\n" <<
     '     xmlns:html="http://www.w3.org/1999/xhtml"' << "\n" <<

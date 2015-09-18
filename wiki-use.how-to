@@ -43,12 +43,54 @@ You should put the content tag last in the list of tags.
 The number of category tags is free. It is best to have the first one as that of the tiddler that link the present tiddler in its 'sequential reading' list. It is mandatory to tag this parent tiddler un every tiddler but the root tiddler. This means that it is an error to include a tiddler in a 'sequential reading' list if this one is not tagging the current tiddler.
 
 === recommended setup
-Say that the tiddlybook project is in the workspace/tiddlybook directory. You will then have your project in workspace/ownproject. Create directories 'src', 'documents' and 'schemas' in your project directory. Use symbolic links in your src subdirectory to the following files: 'docbook2epub.sh', 'generate-schemas-makefile.pl', 'get-tiddlers.pl' and 'wiki2docbook.rb' which are in workspace/tiddlybook/src. Copy the sample 'Mkefile' and adapt it. Now you can type 'make' to create all the derivatives from your tiddlywiki files. If you only want to test your tiddlywiki, just type 'make project.xml' (if you don't change this name of course).
+Say that the tiddlybook project is in the workspace/tiddlybook directory. You will then have your project in workspace/ownproject. Create directories 'src', 'documents' and 'schemas' in your project directory. Use symbolic links in your src subdirectory to the following files: 'docbook2epub.sh', 'entities.rb', 'generate-schemas-makefile.pl', 'get-tiddlers.pl', 'i18n.rb' and 'wiki2docbook.rb' which are in workspace/tiddlybook/src. Copy the sample 'Makefile' and adapt it. Now you can type 'make links' to create these links. You can also type 'make' to generate all the derivatives from your tiddlywiki files. If you only want to test your tiddlywiki, just type 'make project_en.xml' (if you don't change this name of course).
 
 Your graphics sources should be svg files. What the sample makefiles assume is that they are inkscape files. They are to be put inside subdirectories within workplace/schemas/figs-inkcape and theirs names end in .inkscape.svg to distinguish them from clean and resized svg files named in .svg that will be placed in workplace/schemas/figs. This latter subdirectory sfould be linked to workplace/documents/figs in order to allow the tiddlywiki file to display them. This mean you ought to create them first with a command like
 
   make FIGS_SVG
 
 === docbook bug hunting
-The software will tell you many errors. It wil not be able to fetch all errors though. This is why jing is used to validate the generated docbook. Jing will especially spot errors due to limitations of the support of the wiki syntax by the software. Especilly, it is not supported to have a quote insido a bold sequence "this is ''John's lunchbox''." is not supported and will have jing complains. Similarly, you can't have a slash in an italics sequence ("that is //great/awful// job" is not supported). In any case, when jing complains, look at the docbook xml at the line of complaint to see what is causing havoc and fix it.
+The software will tell you many errors. It wil not be able to fetch all errors though. This is why the free software jing is used to validate the generated docbook. Jing will especially spot errors due to limitations of the support of the wiki syntax by the software. Especilly, it is not supported to have a quote insido a bold sequence "this is ''John's lunchbox''." is not supported and will have jing complains. Similarly, you can't have a slash in an italics sequence ("that is //great/awful// job" is not supported). In any case, when jing complains, look at the docbook xml at the line of complaint to see what is causing havoc and fix it.
+
+=== localization ===
+The sample project supports multiple language. This use 'i18n.rb' which defines how to translate 'sequential reading' in any supported language of your project. Languages are designated by their ISO two letters abbreviations. This language information is also reported in the docbook metadata.
+
+To use it set the environment variable 'LANGUAGE' to this two letters id. You can do this like that: 'make EPUB LANGUGAE=fr' for instance.
+
+=== html entities ===
+Some html entities are supported, they are in the ''entities.rb' file. You may add others. Unrecognized entities are reported as errors. All greek letters, all letters derivationg from the latin alphabet, non breaking space and quite a few special characters are included.
+
+The generated docbook only contains the entities that are actully used, if any.
+
+=== sofware requirements ===
+Perl 5.0+ with String::Util and Switch. You can get them through cpan.
+
+ruby 1.9 or 2.0+
+
+jing
+
+calibre, image-magic
+
+xmlto (you don't need any tex/latex so don't use apt-get to get it if that's what is offered to you)
+
+docbook 5 and associated grammars. If you get errors that the system cannot access to its grammar files, you may try the /etc/ file I have. Make bacups of the original file of course!
+
+For your information, here is an adapted part of my typical post-installation file I use to have my setup.
+
+  #APT=apt-get # ubuntu
+  APT=aptitude # debian
+  sudo $APT install \
+    libmagickwand5 libmagickwand-6.q16-2 \
+    calibre jing librsvg2-bin \
+    docbook-xsl-ns docbook5-xml libhtml-template-perl
+  sudo cpan install CPAN
+  sudo cpan install String::Util Switch
+  here=$PWD
+  cd /tmp
+  curl https://fedorahosted.org/releases/x/m/xmlto/xmlto-0.0.26.tar.gz >xmlto.tar.gz
+  tar xzf xmlto.tar.gz
+  cd xmlto-*
+  ./configure && make && sudo make install
+  cd $here
+  rm -r /tmp/xmlto.tar.gz /tmp/xmlto-*
 

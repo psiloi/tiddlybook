@@ -521,11 +521,19 @@ noscript {display:none;} /* Fixes a feature in Firefox 1.5.0.2 where print previ
 </div>
 <!--POST-SHADOWAREA-->
 <div id="storeArea">
+<div title="Beware: bogus versions!" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201509171448" modified="201509171448" tags=":caution" changecount="2">
+<pre>The version information given here are ''bogus''. To get the real history, check the github repository: https://github.com/psiloi/tiddlybook instead!</pre>
+</div>
 <div title="DefaultTiddlers" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141838" modified="201408291526" changecount="2">
 <pre>[[the beginning]]</pre>
 </div>
-<div title="Footnote: make EPUB" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508072214" tags=":footnote" changecount="1">
-<pre>Typing ''make EPUB'' is also a possibility to just get the epub out of the mediawiki. This avoid the translation to pdf, which is a slow process.</pre>
+<div title="Footnote: make EPUB" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508072214" modified="201509171444" tags=":footnote" changecount="3">
+<pre>Typing @@make EPUB@@ is also a possibility to just get the epub out of the mediawiki. This avoid the translation to pdf, which is a slow process.
+
+If you want to indicate French as a language you can type either of:
+* @@make EPUB LANGUAGE=fr@@
+* @@make LANGUAGE=fr EPUB@@
+</pre>
 </div>
 <div title="GettingStarted" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201408291519" changecount="1">
 <pre>To get started with this blank [[TiddlyWiki]], you'll need to modify the following tiddlers:
@@ -547,7 +555,7 @@ You'll also need to enter your username for signing your edits: &lt;&lt;option t
 <div title="SiteTitle" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141835" modified="201408291516" changecount="3">
 <pre>sample book</pre>
 </div>
-<div title="Tip: Why change the title of immediate tiddler?" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508081304" tags=":tip" changecount="1">
+<div title="Tip: No need to change the title of an immediate tiddler." creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508081304" modified="201509171523" tags=":tip" changecount="2">
 <pre>Why change the title of immediate tiddler? It is never seen and if it is good as a label in the link, it will be good as a title.</pre>
 </div>
 <div title="Warning: Never use footnote inside a wiki list!" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508072207" modified="201508072216" tags=":warning" changecount="3">
@@ -559,10 +567,12 @@ You'll also need to enter your username for signing your edits: &lt;&lt;option t
 <div title="cores" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201509140420" modified="201509140919" tags="version" changecount="2">
 <pre>Many cores would be nice but I got only one!</pre>
 </div>
-<div title="immediate tiddlers" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508071653" modified="201508072211" tags=":tip" changecount="8">
-<pre> '':note'', '':tip'', '':caution'', '':important'', '':warning'' and ''footnote'' are also called //the ''immediate tiddlers''// because in the ebook and pdf, their contents is imediatly written in the place of the link calling them. Their titles are not printed, but instead there is a title of their quality. This title is written in the locale of the system, so beware!
+<div title="immediate tiddlers" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201508071653" modified="201509171542" tags=":tip" changecount="20">
+<pre> '':note'', '':tip'', '':caution'', '':important'', '':warning'' and '':footnote'' are also called //''immediate tiddlers''// because in the ebook and pdf, their contents is immediately written in the place of the link calling them. Their titles are not printed, but instead there is a title of their kind (note, warning, etc.). ''This title is written in the locale of the system, so beware!''
 
-Immediate tiddlers must not have any tag beside their colon tag defining their nature.</pre>
+On the other end, the title of these tiddlers is she only things that you can see in the tiddlywiki. A good practice is to have a title that is summarizing the content of the immediate tiddler and which begins by its kind. For instance you can have ''Tip:&amp;nbsp;most&amp;nbsp;useful&amp;nbsp;keyboard&amp;nbsp;shortcuts'' if your wiki is about a desktop application.
+
+Immediate tiddlers must not have any tag beside the tag that is defining their kind. Thus, the only tag for this any //tip// is '':tip'' for instance.</pre>
 </div>
 <div title="licence" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141838" modified="201412141014" tags="system :simplesect" changecount="11">
 <pre>This sample work is published as CC 3.0+ CC 0.
@@ -578,7 +588,7 @@ Immediate tiddlers must not have any tag beside their colon tag defining their n
 <div title="release" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201509140528" modified="201509140919" tags="version" changecount="3">
 <pre>There is no other release data available.</pre>
 </div>
-<div title="system" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309151203" modified="201509111222" tags="[[the beginning]] :chapter" changecount="38">
+<div title="system" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309151203" modified="201509171546" tags="[[the beginning]] :chapter" changecount="46">
 <pre>The [[TiddlyBook|https://github.com/psiloi/tiddlybook]] software runs under ''linux''. It could surely be made run on ~MacOS. ''You must have installed ~TiddlyBook and got it running'' in order to make docbook, ebooks and pdf out of this wiki.
 
 The rules are written on a master wiki, which is a [[tiddlywiki|http://tiddlywiki.com/]]. It is helpful in being a wiki you have in a single html file. It has a timeline feature which helps in knowing what you were doing recently. It has a tag system. But it does not have recovery.
@@ -593,9 +603,9 @@ We use the tag system to attain two goals:
 ** '':appendix'' for a docbook appendix, usually at the end of the book and which can be used instead of a ''chapter'';
 ** '':note'', '':tip'', '':caution'', '':important'', '':warning'' and ''footnote'' are also possible, they are used for what their names mean (the flow is continuating in the current page; they are compatible with any number of ''section''s being at the same level; they do not appear in the TOC and must be in a ''section'').
 
-[[Tip: Why change the title of immediate tiddler?]]
+[[Tip: These last five types of tiddlers are described as immediate tiddlers.|immediate tiddlers]]
 
-[[Tip: these last five types of tiddlers are described as immediate.|immediate tiddlers]]
+[[Tip: No need to change the title of an immediate tiddler.]]
 
 [[Warning: Never use footnote inside a wiki list!]]
 
@@ -603,19 +613,19 @@ We use the tag system to attain two goals:
 
 To produce a book, the wiki should be linearized. We does this within tiddlers with a last part called //sequential reading// introduced with a level 2 header of that name. It is followed by a list (normally an ordered list, but a non ordered list is also possible) of wiki links to the tiddlers to be included after the text of the current tiddler, in the order of introduction.
 
-Now that the system can support several language, the sequence 'sequential reading' can be change for a locale one. These are coded in file ''i18n.rb''. The Makefile has been changed to select which language to use. Now it is invoke with something like ''make LANGUGAGE=fr EPUB'' for instance.
-
-This wiki is then processed to produce a reader tiddlywiki, which is the same wiki without the colon tag and without the //sequential reading// indication. [[Footnote: This is not done yet as of 2015/08/08|not yet done]]
-
 In order to produce either pdf or epub, we first translate to docbook 5.0 and check tags and sequential reading indications. We check the validity of the docbook too. All of this help debugging the rules after a period of intense activity.
 
-In order to produce the default ebook, just type ''make''. For a more specific choice, you have to precise a target. The list of the target can be read with 'make -l'. In particular to cleanup the project type ''make clean''. To only produce and test the docbook, just type ''make project.xml'' (//project.xml// is the name of the docbook file). [[Footnote: make EPUB]]
+Html entities are supported. Not all of tem, but many. Letters of all latin derived alphabets are ther, and greek letters too, and also non-breakable spaces and many symbols. Check ''entities.rb'' for an exhaustive list. You can add more there.
+
+In order to produce the default ebook, just type @@make@@. For a more specific choice, you have to precise a target. The list of the target can be read with @@make -l@@. In particular to cleanup the project type @@make clean@@. To only produce and test the docbook, just type @@make sample_en.xml@@ (where //sample.xml// is the name of the docbook file).
+
+Now that the system can support several language, the sequence 'sequential reading' can be change for a locale one. These are coded in file ''i18n.rb''. The Makefile allows to select which language to use (English as default choice on ''first'' Makefile invocation). Now it is invoke with something like @@make LANGUGAGE=fr EPUB@@ for instance. [[Footnote: make EPUB]]
 
 !! sequential reading
 * [[licence]]</pre>
 </div>
-<div title="the beginning" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141839" modified="201509140846" tags=":part" changecount="49">
-<pre>This is a sample book, in alpha version. Note that to write an //alpha// letter, ''α'', I have to use an //alpha// utf-8 character and not an html entity. ''Because html entities are cumbersome to use with docbook 5 and that there is no support for them yet.'' Note that if you don't have the special character at hand, you can use its html entity in the tiddler, save the tiddler and copy your looked-after character.
+<div title="the beginning" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141839" modified="201509171058" tags=":part" changecount="66">
+<pre>This is a sample book, in alpha version. Note that to write an //alpha// letter, ''α'', I can use an //alpha// utf-8 character but also the &amp;amp;alpha; html entity: ''&amp;alpha;''. You can use &amp;amp;nbsp; also of course, and many other entities.
 
 [[Warning! Bugs lurking!|bugs]]
 
@@ -632,10 +642,10 @@ Cool enough. Now, a more demanding svg graphics with a ''hello'' glyph inside. S
 # [[system]]
 # [[purpose]]</pre>
 </div>
-<div title="tweak" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201509140418" modified="201509140923" tags="version" changecount="3">
-<pre>A tweak is often necessary but you can not remember all of them!</pre>
+<div title="tweak" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201509140418" modified="201509171441" tags="version" changecount="4">
+<pre>A tweak is often necessary but you cannot remember all of them!</pre>
 </div>
-<div title="version" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141837" modified="201509141024" tags="[[the beginning]] :chapter" changecount="18">
+<div title="version" creator="Jean-Pierre Rivière" modifier="Jean-Pierre Rivière" created="201309141837" modified="201509171449" tags="[[the beginning]] :chapter" changecount="24">
 <pre>Here are the [[releases|release]] so far.
 
 |History of versions|c
@@ -647,7 +657,9 @@ Cool enough. Now, a more demanding svg graphics with a ''hello'' glyph inside. S
 |&gt;|&gt;|a [[mystery|tweak]] beyond us|
 
 !!! other things to know
-This is a testing tiddler for table support.
+This is also a testing tiddler for table support.
+
+[[Beware: bogus versions!]]
 
 !! sequential reading
 # [[cores]]

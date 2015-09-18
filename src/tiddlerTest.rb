@@ -1,6 +1,6 @@
 #!/usr/bin/ruby -Ku
 # test suite for tiddler.rb
-# coyright 2013-2014 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
+# copyright 2013-2014 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
 
 # This file is part of TiddlyBook.
 #

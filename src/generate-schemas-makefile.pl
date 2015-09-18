@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # generate makefiles for graphics.
-# coyright 2013-2014 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
+# copyright 2013-2014 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
 
 # This file is part of TiddlyBook.
 #

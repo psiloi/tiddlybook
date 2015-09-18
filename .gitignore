@@ -1,0 +1,4 @@
+# documents/figs is a link which you modify on purpose
+documents/figs
+# vim editor lockfile
+.*.sw?

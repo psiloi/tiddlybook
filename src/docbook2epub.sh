@@ -1,6 +1,6 @@
 #!/bin/bash
 # generate epub file from docbook 5 xml file
-# coyright 2013-2014 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
+# copyright 2013-2014 Jean-Pierre Rivière <jn.pierre.riviere (at) gmail.com
 
 # This file is part of TiddlyBook.
 #
