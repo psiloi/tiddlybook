@@ -92,6 +92,7 @@ sub browse_wiki {
 }
 
 sub ruby {
+  print "# encoding: utf-8\n";
   print "def wiki\n  htid = {\n";
   my $tiddler;
   my $defaut = '';

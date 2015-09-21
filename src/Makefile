@@ -76,20 +76,19 @@ PDF: ${PDF}
 
 clean:
 	rm -r 2>/dev/null \
-	  ${PROJECT_RB} ${PROJECT_XML} \
+	  ${PROJECT_CORENAME}*.rb \
+	  ${PROJECT_CORENAME}*.xml \
 	  ${PROJECT_PNG_RB} ${PROJECT_PNG_XML} \
 	  ${MAKEFILE_SVG} \
 	  ${MAKEFILE_PNG} \
 	  ${SCHEMAS}/${FIGS_SVG} \
 	  ${SCHEMAS}/${FIGS_PNG} \
-	  ${PDF_DIRECT} \
-	  ${PDF_CONV} \
-	  ${EPUB} \
-	  ${EPUB_PNG} \
-	  ${MOBI} \
-	  ${MOBI_PNG} \
 	  ${FIGS_SVG} \
-	  ${FIGS_PNG}
+	  ${FIGS_PNG} \
+	  schemas_png schemas_svg \
+	  ${DOC}/${EBOOK_CORENAME}*.epub \
+	  ${DOC}/${EBOOK_CORENAME}*.mobi \
+	  ${DOC}/${EBOOK_CORENAME}*.pdf
 
 # generate links for graphics and so that the Makefile shall work.
 links:
