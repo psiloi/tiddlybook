@@ -310,6 +310,7 @@ class Tiddler
       gsub(/^!!! *(.*)$/, '=== \1 ===') .
       gsub(/^!! *(.*)$/, '== \1 ==') .
       gsub(/^! *(.*)$/, '= \1 =') .
+      gsub(/@@([^@]*)@@/, '<code>\1</code>') .
       gsub(/\&lt;\/?nowiki\&gt;/, '') . # nowiki is of use because of -- (which is not mediawiki code)
       # Handle non breaking space entities into non breaking spaces.
       # Other entites are dysfunctional, but we don't know how to support entities in docbook yet.
@@ -368,7 +369,7 @@ class Tiddler
 	file = desc
 	@no_title << file
       end
-      @no_file << file unless File.exists?(file)
+      @no_file << file unless File.exists?('../schemas/' << file) || File.exists?(file)
       picture = "[[File:#{file}|#{desc}"
       picture << ((align == '&gt;') ? '|right' : '|left') if align != ''
       picture << '|thumb|300px]]'
