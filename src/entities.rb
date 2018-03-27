@@ -168,10 +168,10 @@ class Entities
       'ensp' => '8194',	#   : en space
       'emsp' => '8195',	#   : em space
       'thinsp' => '8201',	#   : thin space
-      '' => 'zwnj',	# ‌ : 8204; zero width non-joiner
-      '' => 'zwj',	# ‍ : 8205; zero width joiner
-      '' => 'lrm',	# ‎ : 8206; left-to-right mark
-      '' => 'rlm',	# ‏ : 8207; right-to-left mark
+      'zwnj' => '8204',	# ‌ : 8204; zero width non-joiner
+      'zwj' => '8205',	# ‍ : 8205; zero width joiner
+      'lrm' => '8206',	# ‎ : 8206; left-to-right mark
+      'rlm' => '8207',	# ‏ : 8207; right-to-left mark
       'ndash' => '8211',	# – : en dash
       'mdash' => '8212',	# — : em dash
       'lsquo' => '8216',	# ‘ : left single quotation mark
@@ -233,7 +233,7 @@ class Entities
       'Iacute' => '205',	# Í : Latin capital letter I with acute
       'Icirc' => '206',	# Î : Latin capital letter I with circumflex
       'Iuml' => '207',	# Ï : Latin capital letter I with diaeresis
-      'eth' => '208',	# ð : Latin capital letter eth
+      'Eth' => '208',	# ð : Latin capital letter eth
       'Ntilde' => '209',	# Ñ : Latin capital letter N with tilde
       'Ograve' => '210',	# Ò : Latin capital letter O with grave
       'Oacute' => '211',	# Ó : Latin capital letter O with acute
@@ -247,7 +247,7 @@ class Entities
       'Ucirc' => '219',	# Û : Latin capital letter U with circumflex
       'Uuml' => '220',	# Ü : Latin capital letter U with diaeresis
       'Yacute' => '221',	# Ý : Latin capital letter Y with acute
-      'thorn' => '222',	# þ : Latin capital letter thorn
+      'Thorn' => '222',	# þ : Latin capital letter thorn
       'szlig' => '223',	# ß : Latin small letter sharp
       'agrave' => '224',	# à : Latin small letter a with grave
       'aacute' => '225',	# á : Latin small letter a with acute

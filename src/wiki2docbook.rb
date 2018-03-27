@@ -159,6 +159,22 @@ end
 # @return head: root tiddler
 def report_errors(tiddlers, language)
   International.instance.setup(language)
+  oprhans = Tiddler.analyze_links(tiddlers)
+  if oprhans.size > 0
+    oprhans.each { |ref, tiddlers|
+      msg = "Error: orphan link \"#{ref}\" in "
+      if tiddlers.size == 1
+        msg << '"' << tiddlers[0] << '".'
+      else
+        msg << "#{tiddlers.size} tiddlers:\n"
+        tiddlers.each { |tiddler| msg << "  * \"#{tiddler}\";\n" }
+        msg[-2] = '.'
+      end
+      puts msg
+    }
+    puts 'Orphan Link Error'
+    exit 1
+  end
   not_tagged, nonexistent_tags, bad_tag = Tiddler.analyze_tags(tiddlers)
   if not_tagged.size > 0
     not_tagged.each { |title|
@@ -178,13 +194,13 @@ def report_errors(tiddlers, language)
     end
   end
   if bad_tag.size > 0 || nonexistent_tags.size > 0 || not_tagged.size > 0
-    print "Tagging Error\n"
+    puts 'Tagging Error'
     exit 1
   end
   not_included, repeated, linking_imm, unknown, missing_tag,
   self_tag, head = Tiddler.analyze_sequential_reading(tiddlers)
   if (head.nil?)
-    print "Error: no initial tiddler\n"
+    puts 'Error: no initial tiddler.'
     exit 1
   end
   tagging_imm = [] # todo: tagging_imm to be computed with htiddlers
@@ -199,7 +215,7 @@ def report_errors(tiddlers, language)
     unknown.each { |msg| print msg }
     missing_tag.each { |title| print "Missing Parent Tag Error: \"#{title}\".\n" }
     self_tag.each { |title| print "Tagging Itself Error: \"#{title}\".\n" }
-    print "Sequential Reading Error\n"
+    puts 'Sequential Reading Error'
     exit 1
   end
   ent_err = Entities.instance.unsupported_entities

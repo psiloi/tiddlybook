@@ -814,6 +814,26 @@ class Tiddler
     trans
   end #}}}
 
+  # find orphan links, that should have had a corresponding tiddler each one.
+  def self.analyze_links(htiddlers)
+    # orphans: list of orphans links
+    orphans = Hash.new
+    htiddlers.each_value do |tiddler|
+      # we discard link to external files in our wikilink roundup.
+      tiddler.contents.gsub(/\[\[(?!File:)([^\]\|]+)(?:\|(?:[^\]]+))?\]\]/) { |wikilink|
+        ref = $1
+        unless htiddlers.has_key?(ref)
+          if orphans.has_key?(ref)
+            orphans[ref] << tiddler.title
+          else
+            orphans[ref] = [tiddler.title]
+          end
+        end
+      }
+    end
+    return orphans
+  end
+
   def self.analyze_tags(htiddlers)
     # bad_tag : list of every bad format tag (form of the tiddler in the docbook)
     bad_tag = Hash.new
